@@ -97,10 +97,10 @@ def make_regression_model_validation(data, k, lag, state):
     death_predict_val_diff = calcualte_from_diff(death_train[-1], diff_death_predict_val)
 
     # calculate MAPE for validation 
-    death_mape = sqrt(mean_absolute_percentage_error(death_val,death_predict_val))
-    confirmed_mape = sqrt(mean_absolute_percentage_error(confirmed_val,confirmed_predict_val))
-    diff_death_mape = sqrt(mean_absolute_percentage_error(death_val,death_predict_val_diff))
-    diff_confirmed_mape = sqrt(mean_absolute_percentage_error(confirmed_val,confirmed_predict_val_diff))
+    death_mape = mean_absolute_percentage_error(death_val,death_predict_val)
+    confirmed_mape = mean_absolute_percentage_error(confirmed_val,confirmed_predict_val)
+    diff_death_mape = mean_absolute_percentage_error(death_val,death_predict_val_diff)
+    diff_confirmed_mape = mean_absolute_percentage_error(confirmed_val,confirmed_predict_val_diff)
 
     return 0
 
