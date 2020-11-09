@@ -137,7 +137,6 @@ def make_regression_model_and_predict(data, lag, predict_length):
 
 
 def main():
-
     # run model
     result = dict()
     for state in state_names:
