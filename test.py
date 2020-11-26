@@ -21,7 +21,7 @@ def main():
     confirmed_mape = mean_absolute_percentage_error(test_data['Confirmed'], predict_data['Confirmed'])
     death_mape = mean_absolute_percentage_error(test_data['Deaths'], predict_data['Deaths'])
     mape = (confirmed_mape + death_mape) / 2
-    print('MAPE: %f' % mape)
+    print('MAPE  is: %f' % (mape))
 
 if __name__ == '__main__':
     main()

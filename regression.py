@@ -4,10 +4,10 @@ import pandas as pd
 from statsmodels.tsa.ar_model import AutoReg
 
 
-# by tuning seems that using diff value with lag 29 is the best AR model
+# by tuning seems that using diff value with lag 5 is the best AR model
 data_dir = "C:\\Users\\yeyun\\Google Drive\\university\\2020 fall\\CS 145\\covid-19-case-prediction-project\\data\\state_diff\\"
 k = 10
-lag = 10
+lag = 5
 predict_length = 26
 state_names = ["Alabama", "Alaska", "Arkansas", "American Samoa", "Arizona", "California", "Colorado", "Connecticut", "District of Columbia", "Delaware", "Florida", "Georgia", 
 "Guam", "Hawaii", "Iowa", "Idaho", "Illinois", "Indiana", "Kansas", "Kentucky", "Louisiana", "Massachusetts", "Maryland", "Maine", "Michigan", "Minnesota", "Missouri", "Mississippi", 
