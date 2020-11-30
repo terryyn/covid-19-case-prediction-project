@@ -2,7 +2,7 @@ import csv
 import numpy as np
 import pandas as pd
 from statsmodels.tsa.ar_model import AutoReg
-
+from statsmodels.tsa.arima_model import ARIMA
 
 # by tuning seems that using diff value with lag 5 is the best AR model
 data_dir = "C:\\Users\\yeyun\\Google Drive\\university\\2020 fall\\CS 145\\covid-19-case-prediction-project\\data\\state_diff\\"
@@ -136,13 +136,27 @@ def make_regression_model_and_predict(data, lag, predict_length):
     return result
 
 
+def make_arima_model_and_predict(data,lag,predict_length):
+    result = dict()
+    confirmed_model = ARIMA(data['confirmed_diff'], order=(lag,0,0)).fit(disp=0)
+    death_model = ARIMA(data['death_diff'], order=(lag,0,0)).fit(disp=0)
+    training_length = len(data['confirmed_diff'])
+
+    diff_confirmed_predict = confirmed_model.predict(start=training_length, end=training_length+predict_length-1, dynamic=True)
+    diff_death_predict = death_model.predict(start=training_length, end=training_length+predict_length-1, dynamic=True)
+
+    result['confirmed'] = calcualte_from_diff(data['Confirmed'][-1], diff_confirmed_predict)
+    result['death'] = calcualte_from_diff(data['Deaths'][-1], diff_death_predict)
+    return result
+
+
 def main():
     # run model
     result = dict()
     for state in state_names:
         data = data_process(state)
         if data != -1:
-            result[state] = make_regression_model_and_predict(data,lag,predict_length)
+            result[state] = make_arima_model_and_predict(data,lag,predict_length)
 
     # generate submission dictionary
     submission = {'ForecastID':[], 'Confirmed':[], 'Deaths':[]}
