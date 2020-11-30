@@ -2,13 +2,15 @@ import csv
 import numpy as np
 import pandas as pd
 from statsmodels.tsa.ar_model import AutoReg
-from statsmodels.tsa.arima_model import ARIMA
+from statsmodels.tsa.arima.model import ARIMA
 
 # by tuning seems that using diff value with lag 5 is the best AR model
 data_dir = "C:\\Users\\yeyun\\Google Drive\\university\\2020 fall\\CS 145\\covid-19-case-prediction-project\\data\\state_diff\\"
 k = 10
-lag = 5
+lag = 7
 predict_length = 26
+ma = 4
+output_name = 'ar_submission.csv'
 state_names = ["Alabama", "Alaska", "Arkansas", "American Samoa", "Arizona", "California", "Colorado", "Connecticut", "District of Columbia", "Delaware", "Florida", "Georgia", 
 "Guam", "Hawaii", "Iowa", "Idaho", "Illinois", "Indiana", "Kansas", "Kentucky", "Louisiana", "Massachusetts", "Maryland", "Maine", "Michigan", "Minnesota", "Missouri", "Mississippi", 
 "Montana", "North_Carolina", "North_Dakota", "Nebraska", "New_Hampshire", "New_Jersey", "New_Mexico", "Nevada", "New_York", "Ohio", "Oklahoma", "Oregon", "Pennsylvania", "Puerto_Rico", 
@@ -136,10 +138,10 @@ def make_regression_model_and_predict(data, lag, predict_length):
     return result
 
 
-def make_arima_model_and_predict(data,lag,predict_length):
+def make_arima_model_and_predict(data,lag,predict_length, ma):
     result = dict()
-    confirmed_model = ARIMA(data['confirmed_diff'], order=(lag,0,0)).fit(disp=0)
-    death_model = ARIMA(data['death_diff'], order=(lag,0,0)).fit(disp=0)
+    confirmed_model = ARIMA(data['confirmed_diff'], order=(lag,0,ma)).fit()
+    death_model = ARIMA(data['death_diff'], order=(lag,0,ma)).fit()
     training_length = len(data['confirmed_diff'])
 
     diff_confirmed_predict = confirmed_model.predict(start=training_length, end=training_length+predict_length-1, dynamic=True)
@@ -156,7 +158,7 @@ def main():
     for state in state_names:
         data = data_process(state)
         if data != -1:
-            result[state] = make_arima_model_and_predict(data,lag,predict_length)
+            result[state] = make_arima_model_and_predict(data,lag,predict_length,ma)
 
     # generate submission dictionary
     submission = {'ForecastID':[], 'Confirmed':[], 'Deaths':[]}
@@ -171,7 +173,7 @@ def main():
                 id_count += 1
 
     # write to csv
-    with open('ar_submission.csv', 'w', newline='') as f:
+    with open(output_name, 'w', newline='') as f:
         writer = csv.writer(f)
         writer.writerow(submission.keys())
         for i in range(id_count):
