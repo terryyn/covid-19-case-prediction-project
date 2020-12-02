@@ -144,8 +144,8 @@ def make_arima_model_and_predict(data,lag,predict_length, ma):
     death_model = ARIMA(data['death_diff'], order=(lag,0,ma)).fit()
     training_length = len(data['confirmed_diff'])
 
-    diff_confirmed_predict = confirmed_model.predict(start=training_length, end=training_length+predict_length-1, dynamic=True)
-    diff_death_predict = death_model.predict(start=training_length, end=training_length+predict_length-1, dynamic=True)
+    diff_confirmed_predict = confirmed_model.predict(start=training_length, end=training_length+predict_length-1, dynamic=False)
+    diff_death_predict = death_model.predict(start=training_length, end=training_length+predict_length-1, dynamic=False)
 
     result['confirmed'] = calcualte_from_diff(data['Confirmed'][-1], diff_confirmed_predict)
     result['death'] = calcualte_from_diff(data['Deaths'][-1], diff_death_predict)
