@@ -10,7 +10,7 @@ k = 10
 lag = 7
 predict_length = 26
 ma = 4
-output_name = 'ar_submission.csv'
+output_name = 'arima_reference.csv'
 state_names = ["Alabama", "Alaska", "Arkansas", "American Samoa", "Arizona", "California", "Colorado", "Connecticut", "District of Columbia", "Delaware", "Florida", "Georgia", 
 "Guam", "Hawaii", "Iowa", "Idaho", "Illinois", "Indiana", "Kansas", "Kentucky", "Louisiana", "Massachusetts", "Maryland", "Maine", "Michigan", "Minnesota", "Missouri", "Mississippi", 
 "Montana", "North_Carolina", "North_Dakota", "Nebraska", "New_Hampshire", "New_Jersey", "New_Mexico", "Nevada", "New_York", "Ohio", "Oklahoma", "Oregon", "Pennsylvania", "Puerto_Rico", 
@@ -105,37 +105,6 @@ def make_regression_model_validation(data, k, lag, state):
     diff_confirmed_mape = mean_absolute_percentage_error(confirmed_val,confirmed_predict_val_diff)
 
     return 0
-
-
-def make_regression_model_and_predict(data, lag, predict_length):
-    """
-    make regression model for test without validation split
-    
-    Args:
-        data: the data to operate on
-        lag: the number of lag days for AR
-        predict_length: the number of days to predict
-
-    Returns:
-        result: dictionary of predicted result for confirmed and death
-    """
-
-    #init model
-    result = dict()
-    confirmed_model = AutoReg(data['confirmed_diff'], lags=lag).fit()
-    death_model = AutoReg(data['death_diff'], lags=lag).fit()
-    training_length = len(data['confirmed_diff'])
-
-    # predict future diff values and calculate corresponding values
-    diff_confirmed_predict = confirmed_model.predict(start=training_length, end=training_length+predict_length-1, dynamic=False)
-    diff_death_predict = death_model.predict(start=training_length, end=training_length+predict_length-1, dynamic=False)
-    confirmed_predict = calcualte_from_diff(data['Confirmed'][-1], diff_confirmed_predict)
-    death_predict = calcualte_from_diff(data['Deaths'][-1], diff_death_predict)
-
-    # store into result
-    result['confirmed'] = confirmed_predict
-    result['death'] = death_predict
-    return result
 
 
 def make_arima_model_and_predict(data,lag,predict_length, ma):
