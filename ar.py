@@ -1,18 +1,18 @@
 import csv
 import numpy as np
 import pandas as pd
+import os
 from sklearn.linear_model import LinearRegression
-from reference import data_process, calcualte_from_diff
+from reference import data_process, calculate_from_diff
 
-data_dir = "C:\\Users\\yeyun\\Google Drive\\university\\2020 fall\\CS 145\\covid-19-case-prediction-project\\data\\state_diff\\"
-lag = 10
+data_dir = os.getcwd() + "\\data\\state_diff\\"
+lag = 5
 predict_length = 26
 output_name = 'ar_submission.csv'
 state_names = ["Alabama", "Alaska", "Arkansas", "American Samoa", "Arizona", "California", "Colorado", "Connecticut", "District of Columbia", "Delaware", "Florida", "Georgia", 
 "Guam", "Hawaii", "Iowa", "Idaho", "Illinois", "Indiana", "Kansas", "Kentucky", "Louisiana", "Massachusetts", "Maryland", "Maine", "Michigan", "Minnesota", "Missouri", "Mississippi", 
 "Montana", "North_Carolina", "North_Dakota", "Nebraska", "New_Hampshire", "New_Jersey", "New_Mexico", "Nevada", "New_York", "Ohio", "Oklahoma", "Oregon", "Pennsylvania", "Puerto_Rico", 
 "Rhode_Island", "South_Carolina", "South_Dakota", "Tennessee", "Texas", "Utah", "Virginia", "Virgin_Islands", "Vermont", "Washington", "Wisconsin", "West_Virginia", "Wyoming"]
-tested = False
 
 
 def ar_fit_and_predict(train, lag, predict_length):
@@ -30,12 +30,6 @@ def ar_fit_and_predict(train, lag, predict_length):
     y_values = train[lag+1:].tolist()
     lr = LinearRegression()
     lr.fit(x_values, y_values)
-    
-    # debug use
-    global tested
-    if not tested:
-        print(x_values[0])
-        tested = True
 
     # predict future values
     result = list()
@@ -50,7 +44,7 @@ def ar_fit_and_predict(train, lag, predict_length):
     return result
 
 
-def make_prediction(data,lag,predict_length):
+def make_ar_prediction(data,lag,predict_length):
     """
     Main function to create AR model and make prediction
 
@@ -63,8 +57,8 @@ def make_prediction(data,lag,predict_length):
     diff_confirmed_predict = ar_fit_and_predict(data['confirmed_diff'], lag, predict_length)
     diff_death_predict = ar_fit_and_predict(data['death_diff'], lag, predict_length)
 
-    result['confirmed'] = calcualte_from_diff(data['Confirmed'][-1], diff_confirmed_predict)
-    result['death'] = calcualte_from_diff(data['Deaths'][-1], diff_death_predict)
+    result['confirmed'] = calculate_from_diff(data['Confirmed'][-1], diff_confirmed_predict)
+    result['death'] = calculate_from_diff(data['Deaths'][-1], diff_death_predict)
     return result
 
 
@@ -74,7 +68,7 @@ def main():
     for state in state_names:
         data = data_process(state)
         if data != -1:
-            result[state] = make_prediction(data,lag,predict_length)
+            result[state] = make_ar_prediction(data,lag,predict_length)
 
     # generate submission dictionary
     submission = {'ForecastID':[], 'Confirmed':[], 'Deaths':[]}

@@ -3,14 +3,17 @@ import numpy as np
 import pandas as pd
 from statsmodels.tsa.ar_model import AutoReg
 from statsmodels.tsa.arima.model import ARIMA
+from sklearn.linear_model import LinearRegression
+from sklearn.metrics import mean_squared_error
+from scipy.optimize import minimize
+import warnings
 
-# by tuning seems that using diff value with lag 5 is the best AR model
+# by tuning seems that using diff value with lag 7,4 is the best AR model
 data_dir = "C:\\Users\\yeyun\\Google Drive\\university\\2020 fall\\CS 145\\covid-19-case-prediction-project\\data\\state_diff\\"
 k = 10
-lag = 7
+
 predict_length = 26
-ma = 4
-output_name = 'arima_reference.csv'
+
 state_names = ["Alabama", "Alaska", "Arkansas", "American Samoa", "Arizona", "California", "Colorado", "Connecticut", "District of Columbia", "Delaware", "Florida", "Georgia", 
 "Guam", "Hawaii", "Iowa", "Idaho", "Illinois", "Indiana", "Kansas", "Kentucky", "Louisiana", "Massachusetts", "Maryland", "Maine", "Michigan", "Minnesota", "Missouri", "Mississippi", 
 "Montana", "North_Carolina", "North_Dakota", "Nebraska", "New_Hampshire", "New_Jersey", "New_Mexico", "Nevada", "New_York", "Ohio", "Oklahoma", "Oregon", "Pennsylvania", "Puerto_Rico", 
@@ -25,7 +28,7 @@ def mean_absolute_percentage_error(y_true, y_pred):
     return np.mean(np.abs((y_true - y_pred) / y_true)) * 100
 
 
-def calcualte_from_diff(last, diffs):
+def calculate_from_diff(last, diffs):
     """
     Calculate values based on diffs
     """
@@ -109,25 +112,36 @@ def make_regression_model_validation(data, k, lag, state):
 
 def make_arima_model_and_predict(data,lag,predict_length, ma):
     result = dict()
-    confirmed_model = ARIMA(data['confirmed_diff'], order=(lag,0,ma)).fit()
-    death_model = ARIMA(data['death_diff'], order=(lag,0,ma)).fit()
-    training_length = len(data['confirmed_diff'])
+    with warnings.catch_warnings():
+        warnings.filterwarnings("ignore")
+        confirmed_model = ARIMA(data['confirmed_diff'], order=(lag,0,ma)).fit()
+        death_model = ARIMA(data['death_diff'], order=(lag,0,ma)).fit()
+        training_length = len(data['confirmed_diff'])
 
-    diff_confirmed_predict = confirmed_model.predict(start=training_length, end=training_length+predict_length-1, dynamic=False)
-    diff_death_predict = death_model.predict(start=training_length, end=training_length+predict_length-1, dynamic=False)
+        diff_confirmed_predict = confirmed_model.predict(start=training_length, end=training_length+predict_length-1, dynamic=False)
+        diff_death_predict = death_model.predict(start=training_length, end=training_length+predict_length-1, dynamic=False)
 
-    result['confirmed'] = calcualte_from_diff(data['Confirmed'][-1], diff_confirmed_predict)
-    result['death'] = calcualte_from_diff(data['Deaths'][-1], diff_death_predict)
+    result['confirmed'] = calculate_from_diff(data['Confirmed'][-1], diff_confirmed_predict)
+    result['death'] = calculate_from_diff(data['Deaths'][-1], diff_death_predict)
     return result
 
 
 def main():
     # run model
+    lag = 7
+    ma = 4
     result = dict()
     for state in state_names:
         data = data_process(state)
         if data != -1:
             result[state] = make_arima_model_and_predict(data,lag,predict_length,ma)
+            output_state = 'state_result\\%s.csv' % (state)
+            with open(output_state, 'w', newline='') as f:
+                writer = csv.writer(f)
+                writer.writerow(['Confirmed', 'Deaths'])
+                for i in range(predict_length):
+                    cur_row = [result[state]['confirmed'][i], result[state]['death'][i]]
+                    writer.writerow(cur_row)
 
     # generate submission dictionary
     submission = {'ForecastID':[], 'Confirmed':[], 'Deaths':[]}
@@ -142,6 +156,7 @@ def main():
                 id_count += 1
 
     # write to csv
+    output_name = 'arima_reference%d%d.csv' % (lag, ma)
     with open(output_name, 'w', newline='') as f:
         writer = csv.writer(f)
         writer.writerow(submission.keys())
